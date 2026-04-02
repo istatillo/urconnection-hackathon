@@ -1,0 +1,359 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "GradeAI API",
+    "version": "1.0.0",
+    "description": "GradeAI — AI-Powered Teacher Grading System"
+  },
+  "servers": [
+    {"url": "http://localhost:8080", "description": "Development"}
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/sign-up": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Teacher ro'yxatdan o'tish",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "phone", "subject", "gender", "password"],
+                "properties": {
+                  "name": {"type": "string", "example": "Istatillo Jorayev"},
+                  "phone": {"type": "string", "example": "+998901234567"},
+                  "subject": {"type": "string", "enum": ["Matematika","Algebra","Geometriya","Fizika","Kimyo","Biologiya","Informatika","Ingliz tili","Ona tili","Rus tili","Tarix","Geografiya","Adabiyot","Iqtisodiyot","Huquq","Chizmachilik","Tarbiya"], "example": "Matematika"},
+                  "gender": {"type": "string", "enum": ["male","female"], "example": "male"},
+                  "password": {"type": "string", "minLength": 8, "example": "Test12345"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Muvaffaqiyatli ro'yxatdan o'tildi", "content": {"application/json": {"schema": {"type": "object", "properties": {"success": {"type": "boolean"}}}}}},
+          "409": {"description": "Telefon raqam band"},
+          "422": {"description": "Validatsiya xatosi"}
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Teacher login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phone", "password"],
+                "properties": {
+                  "phone": {"type": "string", "example": "+998901234567"},
+                  "password": {"type": "string", "example": "Test12345"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "JWT tokenlar", "content": {"application/json": {"schema": {"type": "object", "properties": {"success": {"type": "boolean"}, "access_token": {"type": "string"}, "refresh_token": {"type": "string"}}}}}},
+          "400": {"description": "Noto'g'ri credentials"}
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Teacher profili",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {"description": "Teacher ma'lumotlari", "content": {"application/json": {"schema": {"type": "object", "properties": {"success": {"type": "boolean"}, "data": {"type": "object", "properties": {"_id": {"type": "string"}, "name": {"type": "string"}, "phone": {"type": "string"}, "subject": {"type": "string"}, "gender": {"type": "string"}}}}}}}},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    },
+    "/api/auth/update": {
+      "put": {
+        "tags": ["Auth"],
+        "summary": "Profil tahrirlash",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "phone": {"type": "string"},
+                  "subject": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Yangilandi"}}
+      }
+    },
+    "/api/auth/update-password": {
+      "put": {
+        "tags": ["Auth"],
+        "summary": "Parol o'zgartirish",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["current_password", "new_password"],
+                "properties": {
+                  "current_password": {"type": "string"},
+                  "new_password": {"type": "string", "minLength": 8}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Parol yangilandi"}}
+      }
+    },
+    "/api/auth/refresh-token/{token}": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Token yangilash",
+        "parameters": [{"name": "token", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "Yangi tokenlar"}}
+      }
+    },
+    "/api/group/create": {
+      "post": {
+        "tags": ["Group"],
+        "summary": "Guruh yaratish",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {"type": "string", "example": "9-A sinf Matematika"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"201": {"description": "Guruh yaratildi"}}
+      }
+    },
+    "/api/group/get-all": {
+      "get": {
+        "tags": ["Group"],
+        "summary": "Barcha guruhlar",
+        "security": [{"BearerAuth": []}],
+        "responses": {"200": {"description": "Guruhlar ro'yxati (member_count bilan)"}}
+      }
+    },
+    "/api/group/get/{id}": {
+      "get": {
+        "tags": ["Group"],
+        "summary": "Guruh tafsiloti + a'zolar",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "Guruh + members"}}
+      }
+    },
+    "/api/group/update/{id}": {
+      "put": {
+        "tags": ["Group"],
+        "summary": "Guruh tahrirlash",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "status": {"type": "string", "enum": ["open", "closed"]}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Yangilandi"}}
+      }
+    },
+    "/api/group/freeze/{id}/{student_id}": {
+      "patch": {
+        "tags": ["Group"],
+        "summary": "A'zoni muzlatish",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Guruh ID"},
+          {"name": "student_id", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Student ID"}
+        ],
+        "responses": {"200": {"description": "Muzlatildi"}}
+      }
+    },
+    "/api/group/remove/{id}/{student_id}": {
+      "delete": {
+        "tags": ["Group"],
+        "summary": "A'zoni chetlatish",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Guruh ID"},
+          {"name": "student_id", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Student ID"}
+        ],
+        "responses": {"200": {"description": "Chetlatildi"}}
+      }
+    },
+    "/api/group/invite-link/{id}": {
+      "get": {
+        "tags": ["Group"],
+        "summary": "Telegram Bot invite link",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "invite_link va invite_code"}}
+      }
+    },
+    "/api/task/create": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "Vazifa yaratish (rasm + AI tahlil)",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "group", "deadline", "image"],
+                "properties": {
+                  "name": {"type": "string", "example": "Kvadrat tenglamalar"},
+                  "group": {"type": "string", "description": "Guruh ID"},
+                  "deadline": {"type": "string", "format": "date-time", "example": "2026-04-10T23:59:00.000Z"},
+                  "image": {"type": "string", "format": "binary", "description": "Vazifa rasmi (JPG, PNG, WebP)"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"201": {"description": "Vazifa yaratildi (AI topic + context bilan)"}}
+      }
+    },
+    "/api/task/get-all": {
+      "get": {
+        "tags": ["Task"],
+        "summary": "Vazifalar ro'yxati",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "group", "in": "query", "schema": {"type": "string"}, "description": "Guruh ID bo'yicha filter"}],
+        "responses": {"200": {"description": "Vazifalar (submission_count bilan)"}}
+      }
+    },
+    "/api/task/get/{id}": {
+      "get": {
+        "tags": ["Task"],
+        "summary": "Vazifa tafsiloti + topshirishlar",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "Vazifa + submissions array"}}
+      }
+    },
+    "/api/task/update/{id}": {
+      "put": {
+        "tags": ["Task"],
+        "summary": "Vazifa tahrirlash",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "topic": {"type": "string"},
+                  "context": {"type": "string"},
+                  "deadline": {"type": "string", "format": "date-time"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Yangilandi"}}
+      }
+    },
+    "/api/rating/group/{id}": {
+      "get": {
+        "tags": ["Rating"],
+        "summary": "Guruh reytingi (o'rtacha ball bo'yicha tartiblangan)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Guruh ID"}],
+        "responses": {"200": {"description": "students array: student, total_submissions, average_score"}}
+      }
+    },
+    "/api/rating/student/{id}": {
+      "get": {
+        "tags": ["Rating"],
+        "summary": "O'quvchi progressi",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Student ID"}],
+        "responses": {"200": {"description": "total_submissions, average_score, progress array"}}
+      }
+    },
+    "/api/complaint/get-all": {
+      "get": {
+        "tags": ["Complaint"],
+        "summary": "Barcha shikoyatlar",
+        "security": [{"BearerAuth": []}],
+        "responses": {"200": {"description": "Shikoyatlar ro'yxati"}}
+      }
+    },
+    "/api/complaint/get/{id}": {
+      "get": {
+        "tags": ["Complaint"],
+        "summary": "Shikoyat tafsiloti (javob + AI baho + etalon)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "Shikoyat + submission + task context"}}
+      }
+    },
+    "/api/complaint/override/{id}": {
+      "post": {
+        "tags": ["Complaint"],
+        "summary": "Baho override (0-10)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Complaint ID"}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["new_score"],
+                "properties": {
+                  "new_score": {"type": "number", "minimum": 0, "maximum": 10, "example": 8.5}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Baho o'zgartirildi + audit log yozildi"}}
+      }
+    }
+  }
+}
