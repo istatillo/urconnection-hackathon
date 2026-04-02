@@ -49,6 +49,16 @@ export async function freezeStudent(
   return res.data;
 }
 
+export async function unfreezeStudent(
+  groupId: string,
+  studentId: string
+): Promise<ApiResponse> {
+  const res = await apiClient.patch<ApiResponse>(
+    `/api/group/unfreeze/${groupId}/${studentId}`
+  );
+  return res.data;
+}
+
 export async function removeStudent(
   groupId: string,
   studentId: string

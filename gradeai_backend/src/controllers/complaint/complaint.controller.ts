@@ -2,11 +2,14 @@ import {ReasonPhrases, StatusCodes} from 'http-status-codes'
 
 import {ComplaintModel} from '../../models/complaint'
 import {SubmissionModel} from '../../models/submission'
+import {StudentModel} from '../../models/student'
 import {AuditLogModel} from '../../models/audit-log'
 import {GroupModel} from '../../models/group'
 import {TaskModel} from '../../models/task'
 import {HttpException} from '../../utils/http.exception'
 import {asyncHandler} from '../../middlewares/async-handler.middleware'
+import {sendMessage} from '../../bot/telegram.service'
+import {logger} from '../../utils/logger'
 
 export class ComplaintController {
   public static getAll = asyncHandler(async (req, res) => {
@@ -52,7 +55,7 @@ export class ComplaintController {
 
   public static override = asyncHandler(async (req, res) => {
     const {id} = req.params
-    const {new_score} = req.body
+    const {new_score, message} = req.body
     const teacherId = req.body.user._id
 
     const complaint = await ComplaintModel.findById(id)
@@ -103,6 +106,27 @@ export class ComplaintController {
       old_value: String(oldScore),
       new_value: String(new_score),
     })
+
+    try {
+      const student = await StudentModel.findById(complaint.student)
+      if (student?.telegram_id) {
+        let text =
+          `📋 *Shikoyatingiz ko'rib chiqildi!*\n\n` +
+          `📌 Vazifa: *${task.name}*\n` +
+          `📊 Oldingi baho: *${oldScore}*\n` +
+          `✅ Yangi baho: *${new_score}*\n\n`
+
+        if (message) {
+          text += `💬 O'qituvchi xabari:\n${message}\n\n`
+        }
+
+        text += `O'qituvchingiz shikoyatingizni ko'rib chiqdi va bahoyingizni yangiladi.`
+
+        await sendMessage(student.telegram_id, text)
+      }
+    } catch (error) {
+      logger.warn('Failed to send complaint resolution notification', {student: complaint.student, error})
+    }
 
     res.status(StatusCodes.OK).json({success: true})
   })

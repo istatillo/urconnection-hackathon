@@ -9,5 +9,6 @@ export class ComplaintValidator {
     param('id', 'Shikoyat ID noto\'g\'ri').isMongoId(),
     body('new_score', 'Yangi baho kiritilishi shart').notEmpty(),
     body('new_score', 'Baho 0 dan 10 gacha bo\'lishi kerak').isFloat({min: 0, max: 10}),
+    body('message').optional().isString().trim(),
   ]
 }

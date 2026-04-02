@@ -30,4 +30,5 @@ export interface Complaint {
 
 export interface OverrideRequest {
   new_score: number;
+  message?: string;
 }

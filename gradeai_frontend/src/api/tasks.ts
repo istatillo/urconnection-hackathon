@@ -40,6 +40,27 @@ export async function createTask(data: {
   return res.data;
 }
 
+export interface ImageAnalysisResult {
+  suggested_name: string;
+  description: string;
+  topic: string;
+  task_type: string;
+}
+
+export async function analyzeTaskImage(
+  image: File
+): Promise<ImageAnalysisResult> {
+  const formData = new FormData();
+  formData.append("image", image);
+
+  const res = await apiClient.post<ApiResponse<ImageAnalysisResult>>(
+    "/api/task/analyze-image",
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return res.data.data!;
+}
+
 export async function updateTask(
   id: string,
   data: UpdateTaskRequest

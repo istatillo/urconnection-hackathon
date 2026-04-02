@@ -1,4 +1,4 @@
-import { Snowflake, Trash2 } from "lucide-react";
+import { Snowflake, Trash2, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { GroupMember } from "@/types/group";
@@ -7,10 +7,11 @@ import { MEMBER_STATUS_LABELS } from "@/lib/constants";
 interface MemberRowProps {
   member: GroupMember;
   onFreeze: (studentId: string) => void;
+  onUnfreeze: (studentId: string) => void;
   onRemove: (studentId: string) => void;
 }
 
-export function MemberRow({ member, onFreeze, onRemove }: MemberRowProps) {
+export function MemberRow({ member, onFreeze, onUnfreeze, onRemove }: MemberRowProps) {
   const student = member.student;
   const isActive = member.status === "active";
   const isFrozen = member.status === "frozen";
@@ -44,6 +45,17 @@ export function MemberRow({ member, onFreeze, onRemove }: MemberRowProps) {
               onClick={() => onFreeze(student._id)}
             >
               <Snowflake className="h-4 w-4 text-blue-500" />
+            </Button>
+          )}
+          {isFrozen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Qaytarish"
+              onClick={() => onUnfreeze(student._id)}
+            >
+              <Play className="h-4 w-4 text-green-500" />
             </Button>
           )}
           {(isActive || isFrozen) && (

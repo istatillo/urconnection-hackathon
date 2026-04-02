@@ -21,6 +21,8 @@ export class TelegramBotApp {
 
   public async start(): Promise<void> {
     try {
+      await this.bot.stopPolling()
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       this.bot.startPolling()
       logger.info('Telegram bot started successfully')
       this.setupHandlers()

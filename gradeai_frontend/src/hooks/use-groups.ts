@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createGroup,
   freezeStudent,
+  unfreezeStudent,
   getGroup,
   getGroups,
   getInviteLink,
@@ -48,6 +49,15 @@ export function useFreezeStudent(groupId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (studentId: string) => freezeStudent(groupId, studentId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["groups", groupId] }),
+  });
+}
+
+export function useUnfreezeStudent(groupId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (studentId: string) => unfreezeStudent(groupId, studentId),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["groups", groupId] }),
   });

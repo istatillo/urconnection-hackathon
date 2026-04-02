@@ -3,10 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 
 import { GroupModel } from "../../models/group";
 import { GroupMemberModel } from "../../models/group-member";
+import { StudentModel } from "../../models/student";
 import { AuditLogModel } from "../../models/audit-log";
 import { HttpException } from "../../utils/http.exception";
 import { asyncHandler } from "../../middlewares/async-handler.middleware";
 import { BOT_USERNAME } from "../../utils/secrets";
+import { sendMessage } from "../../bot/telegram.service";
+import { logger } from "../../utils/logger";
 
 export class GroupController {
   public static create = asyncHandler(async (req, res) => {
@@ -130,6 +133,74 @@ export class GroupController {
       new_value: "frozen",
     });
 
+    try {
+      const student = await StudentModel.findById(student_id);
+      if (student?.telegram_id) {
+        await sendMessage(
+          student.telegram_id,
+          `❄️ *Siz muzlatildingiz!*\n\n` +
+            `👥 Guruh: *${group.name}*\n\n` +
+            `Siz hozircha bu guruhda vazifa topshira olmaysiz. ` +
+            `Savollaringiz bo'lsa, o'qituvchingizga murojaat qiling.`,
+        );
+      }
+    } catch (error) {
+      logger.warn("Failed to send freeze notification", { student_id, error });
+    }
+
+    res.status(StatusCodes.OK).json({ success: true });
+  });
+
+  public static unfreezeMember = asyncHandler(async (req, res) => {
+    const { id, student_id } = req.params;
+    const teacherId = req.body.user._id;
+
+    const group = await GroupModel.findOne({ _id: id, teacher: teacherId });
+    if (!group) {
+      throw new HttpException(
+        StatusCodes.NOT_FOUND,
+        ReasonPhrases.NOT_FOUND,
+        "Guruh topilmadi!",
+      );
+    }
+
+    const member = await GroupMemberModel.findOne({
+      group: id,
+      student: student_id,
+      status: "frozen",
+    });
+    if (!member) {
+      throw new HttpException(
+        StatusCodes.NOT_FOUND,
+        ReasonPhrases.NOT_FOUND,
+        "Muzlatilgan a'zo topilmadi!",
+      );
+    }
+
+    await member.updateOne({ $set: { status: "active" } });
+
+    await AuditLogModel.create({
+      action: "unfreeze",
+      performed_by: teacherId,
+      target_student: student_id,
+      old_value: "frozen",
+      new_value: "active",
+    });
+
+    try {
+      const student = await StudentModel.findById(student_id);
+      if (student?.telegram_id) {
+        await sendMessage(
+          student.telegram_id,
+          `✅ *Siz muzlatishdan qaytarildingiz!*\n\n` +
+            `👥 Guruh: *${group.name}*\n\n` +
+            `Endi yana vazifalarni topshirishingiz mumkin. Omad! 🎉`,
+        );
+      }
+    } catch (error) {
+      logger.warn("Failed to send unfreeze notification", { student_id, error });
+    }
+
     res.status(StatusCodes.OK).json({ success: true });
   });
 
@@ -169,6 +240,20 @@ export class GroupController {
       old_value: oldStatus,
       new_value: "removed",
     });
+
+    try {
+      const student = await StudentModel.findById(student_id);
+      if (student?.telegram_id) {
+        await sendMessage(
+          student.telegram_id,
+          `🚫 *Siz guruhdan chiqarildingiz!*\n\n` +
+            `👥 Guruh: *${group.name}*\n\n` +
+            `Savollaringiz bo'lsa, o'qituvchingizga murojaat qiling.`,
+        );
+      }
+    } catch (error) {
+      logger.warn("Failed to send remove notification", { student_id, error });
+    }
 
     res.status(StatusCodes.OK).json({ success: true });
   });

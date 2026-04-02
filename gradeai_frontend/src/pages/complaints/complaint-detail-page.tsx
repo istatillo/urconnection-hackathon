@@ -1,22 +1,21 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ImageIcon } from "lucide-react";
+import { ArrowLeft, ImageIcon, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/shared/page-header";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { ErrorAlert } from "@/components/shared/error-alert";
 import { ScoreBadge } from "@/components/shared/score-badge";
-import { OverrideScoreDialog } from "@/components/complaints/override-score-dialog";
+import { OverrideScoreForm } from "@/components/complaints/override-score-dialog";
 import { useComplaint } from "@/hooks/use-complaints";
 import { COMPLAINT_STATUS_LABELS } from "@/lib/constants";
 
 export function ComplaintDetailPage() {
   const { complaintId } = useParams<{ complaintId: string }>();
   const { data: complaint, isLoading, error } = useComplaint(complaintId!);
-  const [overrideOpen, setOverrideOpen] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   if (isLoading) return <LoadingSpinner />;
   if (error || !complaint)
@@ -49,13 +48,6 @@ export function ComplaintDetailPage() {
           >
             {COMPLAINT_STATUS_LABELS[complaint.status]}
           </Badge>
-        }
-        action={
-          isPending ? (
-            <Button onClick={() => setOverrideOpen(true)}>
-              Ballni qayta belgilash
-            </Button>
-          ) : null
         }
       />
 
@@ -112,7 +104,8 @@ export function ComplaintDetailPage() {
                 <img
                   src={`/${complaint.task.image_url}`}
                   alt="Topshiriq"
-                  className="max-h-48 rounded-lg border object-contain"
+                  className="max-h-48 cursor-pointer rounded-lg border object-contain transition-opacity hover:opacity-80"
+                  onClick={() => setLightboxSrc(`/${complaint.task.image_url}`)}
                 />
               </CardContent>
             </Card>
@@ -128,7 +121,8 @@ export function ComplaintDetailPage() {
                 <img
                   src={`/${complaint.submission.answer_image}`}
                   alt="Javob"
-                  className="max-h-48 rounded-lg border object-contain"
+                  className="max-h-48 cursor-pointer rounded-lg border object-contain transition-opacity hover:opacity-80"
+                  onClick={() => setLightboxSrc(`/${complaint.submission.answer_image}`)}
                 />
               </CardContent>
             </Card>
@@ -149,12 +143,32 @@ export function ComplaintDetailPage() {
         </Card>
       )}
 
-      <OverrideScoreDialog
-        open={overrideOpen}
-        onOpenChange={setOverrideOpen}
-        complaintId={complaintId!}
-        currentScore={complaint.submission.ai_score}
-      />
+      {isPending && (
+        <OverrideScoreForm
+          complaintId={complaintId!}
+          currentScore={complaint.submission.ai_score}
+        />
+      )}
+
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <button
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+            onClick={() => setLightboxSrc(null)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <img
+            src={lightboxSrc}
+            alt="To'liq ko'rinish"
+            className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

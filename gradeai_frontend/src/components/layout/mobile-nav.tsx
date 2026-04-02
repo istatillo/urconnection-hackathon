@@ -12,8 +12,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { SidebarNavItem } from "./sidebar-nav-item";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -28,10 +29,8 @@ export function MobileNav() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden">
-          <Menu className="h-5 w-5" />
-        </Button>
+      <SheetTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "lg:hidden")}>
+        <Menu className="h-5 w-5" />
       </SheetTrigger>
       <SheetContent side="left" className="w-60 p-0">
         <SheetHeader className="flex h-14 items-center border-b px-4">

@@ -12,6 +12,33 @@ import {notifyGroupMembers} from '../../bot/handlers/notification.handler'
 import {logger} from '../../utils/logger'
 
 export class TaskController {
+  public static analyzeImage = asyncHandler(async (req, res) => {
+    const teacherId = req.body.user._id
+    const file = req.file
+
+    if (!file) {
+      throw new HttpException(StatusCodes.BAD_REQUEST, ReasonPhrases.BAD_REQUEST, 'Rasm yuklanishi shart!')
+    }
+
+    const teacher = await TeacherModel.findById(teacherId)
+    if (!teacher) {
+      throw new HttpException(StatusCodes.NOT_FOUND, ReasonPhrases.NOT_FOUND, 'Teacher topilmadi!')
+    }
+
+    const base64 = file.buffer.toString('base64')
+    const analysis = await analyzeTaskImage(base64, teacher.subject)
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: {
+        suggested_name: analysis.suggested_name || analysis.topic || '',
+        description: analysis.description || '',
+        topic: analysis.topic || '',
+        task_type: analysis.task_type || '',
+      },
+    })
+  })
+
   public static create = asyncHandler(async (req, res) => {
     const {name, group, deadline} = req.body
     const teacherId = req.body.user._id

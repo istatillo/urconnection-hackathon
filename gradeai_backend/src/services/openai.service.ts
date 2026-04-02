@@ -252,11 +252,16 @@ VAZIFANG: Teacher yuklagan vazifa rasmini tahlil qilib, quyidagi ma'lumotlarni J
 Fan: ${subject}
 ${subjectRules ? `\n${subject} fani bo'yicha qo'shimcha ko'rsatmalar:\n${subjectRules}` : ''}
 
+5. "suggested_name" — topshiriq uchun qisqa va aniq nom taklifi (masalan: "Kvadrat tenglamalar bo'yicha masalalar", "Present Perfect - mashqlar")
+6. "description" — topshiriq haqida 2-3 gaplik qisqacha tavsif. O'qituvchiga topshiriq mazmunini tushuntiradigan matn.
+
 JAVOB FORMATI (faqat JSON, boshqa hech narsa yo'q):
 {
   "topic": "mavzu nomi",
   "task_type": "vazifa turi",
-  "context": "batafsil etalon javob tavsifi..."
+  "context": "batafsil etalon javob tavsifi...",
+  "suggested_name": "topshiriq uchun tavsiya etilgan nom",
+  "description": "topshiriq haqida qisqacha tavsif (2-3 gap)"
 }`
 }
 
@@ -322,6 +327,8 @@ export interface TaskAnalysis {
   topic: string
   task_type: string
   context: string
+  suggested_name: string
+  description: string
 }
 
 export interface GradeResult {

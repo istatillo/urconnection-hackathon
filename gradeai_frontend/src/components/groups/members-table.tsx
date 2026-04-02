@@ -5,12 +5,14 @@ import { EmptyState } from "@/components/shared/empty-state";
 interface MembersTableProps {
   members: GroupMember[];
   onFreeze: (studentId: string) => void;
+  onUnfreeze: (studentId: string) => void;
   onRemove: (studentId: string) => void;
 }
 
 export function MembersTable({
   members,
   onFreeze,
+  onUnfreeze,
   onRemove,
 }: MembersTableProps) {
   if (members.length === 0) {
@@ -42,6 +44,7 @@ export function MembersTable({
               key={member._id}
               member={member}
               onFreeze={onFreeze}
+              onUnfreeze={onUnfreeze}
               onRemove={onRemove}
             />
           ))}

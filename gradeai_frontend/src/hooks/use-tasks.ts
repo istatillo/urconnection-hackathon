@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createTask, getTask, getTasks, updateTask } from "@/api/tasks";
+import {
+  analyzeTaskImage,
+  createTask,
+  getTask,
+  getTasks,
+  updateTask,
+} from "@/api/tasks";
 import type { UpdateTaskRequest } from "@/types/task";
 
 export function useTasks(groupId?: string) {
@@ -14,6 +20,12 @@ export function useTask(id: string) {
     queryKey: ["tasks", "detail", id],
     queryFn: () => getTask(id),
     enabled: !!id,
+  });
+}
+
+export function useAnalyzeTaskImage() {
+  return useMutation({
+    mutationFn: analyzeTaskImage,
   });
 }
 

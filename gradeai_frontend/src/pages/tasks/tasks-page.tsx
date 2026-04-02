@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,17 +21,21 @@ export function TasksPage() {
   const { data: tasks, isLoading, error } = useTasks(selectedGroup || undefined);
   const { data: groups } = useGroups();
 
+  const groupItems = useMemo(() => {
+    const map: Record<string, string> = { all: "Barcha guruhlar" };
+    groups?.forEach((g) => { map[g._id] = g.name; });
+    return map;
+  }, [groups]);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Topshiriqlar"
         description="Barcha topshiriqlarni boshqaring"
         action={
-          <Button asChild>
-            <Link to="/tasks/create">
-              <Plus className="mr-2 h-4 w-4" />
-              Yangi topshiriq
-            </Link>
+          <Button nativeButton={false} render={<Link to="/tasks/create" />}>
+            <Plus className="mr-2 h-4 w-4" />
+            Yangi topshiriq
           </Button>
         }
       />
@@ -40,6 +44,7 @@ export function TasksPage() {
         <Select
           value={selectedGroup}
           onValueChange={(val) => setSelectedGroup(val === "all" ? "" : val)}
+          items={groupItems}
         >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Guruh bo'yicha" />

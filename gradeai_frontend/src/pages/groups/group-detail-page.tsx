@@ -16,6 +16,7 @@ import { StudentProgress } from "@/components/ratings/student-progress";
 import {
   useGroup,
   useFreezeStudent,
+  useUnfreezeStudent,
   useRemoveStudent,
   useInviteLink,
 } from "@/hooks/use-groups";
@@ -26,6 +27,7 @@ export function GroupDetailPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const { data: group, isLoading, error } = useGroup(groupId!);
   const freezeStudent = useFreezeStudent(groupId!);
+  const unfreezeStudent = useUnfreezeStudent(groupId!);
   const removeStudent = useRemoveStudent(groupId!);
   const inviteLinkQuery = useInviteLink(groupId!);
 
@@ -35,7 +37,7 @@ export function GroupDetailPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
-    type: "freeze" | "remove";
+    type: "freeze" | "unfreeze" | "remove";
     studentId: string;
   } | null>(null);
 
@@ -55,6 +57,9 @@ export function GroupDetailPage() {
       if (confirmAction.type === "freeze") {
         await freezeStudent.mutateAsync(confirmAction.studentId);
         toast.success("Talaba muzlatildi");
+      } else if (confirmAction.type === "unfreeze") {
+        await unfreezeStudent.mutateAsync(confirmAction.studentId);
+        toast.success("Talaba qaytarildi");
       } else {
         await removeStudent.mutateAsync(confirmAction.studentId);
         toast.success("Talaba o'chirildi");
@@ -105,6 +110,9 @@ export function GroupDetailPage() {
           onFreeze={(studentId) =>
             setConfirmAction({ type: "freeze", studentId })
           }
+          onUnfreeze={(studentId) =>
+            setConfirmAction({ type: "unfreeze", studentId })
+          }
           onRemove={(studentId) =>
             setConfirmAction({ type: "remove", studentId })
           }
@@ -150,18 +158,26 @@ export function GroupDetailPage() {
         title={
           confirmAction?.type === "freeze"
             ? "Talabani muzlatish"
-            : "Talabani o'chirish"
+            : confirmAction?.type === "unfreeze"
+              ? "Talabani qaytarish"
+              : "Talabani o'chirish"
         }
         description={
           confirmAction?.type === "freeze"
             ? "Bu talaba guruhda muzlatiladi va topshiriq yubora olmaydi."
-            : "Bu talaba guruhdan o'chiriladi."
+            : confirmAction?.type === "unfreeze"
+              ? "Bu talaba guruhda qayta faollashtiriladi."
+              : "Bu talaba guruhdan o'chiriladi."
         }
         variant={confirmAction?.type === "remove" ? "destructive" : "default"}
         confirmLabel={
-          confirmAction?.type === "freeze" ? "Muzlatish" : "O'chirish"
+          confirmAction?.type === "freeze"
+            ? "Muzlatish"
+            : confirmAction?.type === "unfreeze"
+              ? "Qaytarish"
+              : "O'chirish"
         }
-        loading={freezeStudent.isPending || removeStudent.isPending}
+        loading={freezeStudent.isPending || unfreezeStudent.isPending || removeStudent.isPending}
         onConfirm={handleConfirmAction}
       />
     </div>
