@@ -5,9 +5,10 @@ import { SUBMISSION_STATUS_LABELS } from "@/lib/constants";
 
 interface SubmissionRowProps {
   submission: Submission;
+  onClick?: () => void;
 }
 
-export function SubmissionRow({ submission }: SubmissionRowProps) {
+export function SubmissionRow({ submission, onClick }: SubmissionRowProps) {
   const student = submission.student;
   const score =
     submission.override_score != null
@@ -16,7 +17,7 @@ export function SubmissionRow({ submission }: SubmissionRowProps) {
   const isOverridden = submission.override_score != null;
 
   return (
-    <tr className="border-b">
+    <tr className="border-b cursor-pointer hover:bg-muted/50 transition-colors" onClick={onClick}>
       <td className="px-4 py-3 text-sm">
         {student.first_name} {student.last_name}
       </td>
